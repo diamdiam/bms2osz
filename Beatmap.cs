@@ -49,6 +49,8 @@ namespace bms
             Artist = Artist.Replace('/', ' ');
             Title = Title.Replace('/', ' ');
             Filename = string.Format("{0} - {1} ({2}) [{3}].osu", Artist, Title, "BMXC_V1", Diff);
+            if(File.Exists(Dir+Filename))
+                Filename = "("+OrgFilename+")"+Filename;
             //no notes in special column, convert to normal map.
             if (!Special)
             {
@@ -140,7 +142,7 @@ namespace bms
                 index = ~index;
             if (index > TimingList.Count)
                 index = TimingList.Count;
-            Timing target = TimingList[index - 1];
+            Timing target = TimingList[index==0?0:index - 1];
             return ((t.Section + t.Offset) - (target.Section + target.Offset)) * (60000 * 4 / target.bpm) * target.beat + target.Time;
         }
 
@@ -163,7 +165,7 @@ namespace bms
                 index = ~index;
             if (index > TimingList.Count)
                 index = TimingList.Count;
-            Timing target = TimingList[index - 1];
+            Timing target = TimingList[index==0?0:index - 1];
             return ((t.Section + t.Offset) - (target.Section + target.Offset)) * (60000 * 4 / target.bpm) * target.beat + target.Time;
         }
 
