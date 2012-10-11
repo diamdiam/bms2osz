@@ -36,6 +36,8 @@ namespace bms
 
         private void processBMS(string[] files)
         {
+            string dir = ofdLoad.FileName.Substring(0, ofdLoad.FileName.LastIndexOf('\\') + 1);
+            string ext;
             for (int i = 0; i < files.Length; i++)
             {
                 map = new Beatmap();
@@ -87,8 +89,12 @@ namespace bms
                                     if (arr[0].StartsWith("WAV") && arr[0].Length == 5)
                                     {
                                         string key = arr[0].Substring(3, 2);
-                                        SampleManager.Add(key, arr[1]);
-                                        wavDict.Add(key, arr[1]);
+                                        arr[1] = Beatmap.GetSampleFilename(dir,arr[1], out ext);
+                                        if (arr[1] !="")
+                                        {
+                                            SampleManager.Add(key, arr[1]);
+                                            wavDict.Add(key, arr[1]);
+                                        }
                                         continue;
                                     }
                                     switch (arr[0])
@@ -192,18 +198,19 @@ namespace bms
             //note sample
             foreach (SoundUnit su in SampleManager.fileDict.Values)
             {
-                string ext = "";
-                string file = Beatmap.GetSampleFilename(dir,su.File, out ext);
+                string file = su.File;
                 if (file == "")
-                    continue;
+                {
+                    continue; //shouldn't run to here
+                }
                 string newFile = string.Format("{0}{1}-hit{2}{3}{4}", dir+"osu_output\\", su.Set.ToString().ToLower(),
-                                                            su.Sound.ToString().ToLower(), su.Custom.ToString(), ext);
+                                                            su.Sound.ToString().ToLower(), su.Custom.ToString(), file.Substring(file.LastIndexOf('.')));
                 if (File.Exists(newFile))
                     continue;
                 File.Copy(dir + file, newFile);
             }
             //blank mp3
-            int minuts = (int)Math.Ceiling(lastMapTime / 1000 / 60);
+        /*    int minuts = (int)Math.Ceiling(lastMapTime / 1000 / 60);
             if (minuts < 2)
                 minuts = 2;
             if (minuts > 4)
@@ -224,7 +231,7 @@ namespace bms
                         fs.Write(data, 0, data.Length);
                     }
                 }
-            }
+            }*/
         }   
 
         private int[] line2key(string line)

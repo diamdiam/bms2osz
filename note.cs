@@ -14,9 +14,10 @@ namespace bms
         NormalNewCombo = 5,
         SliderNewCombo = 6,
         Spinner = 8,
-        ManiaLong = 16,
         ColourHax = 112,
-        Hold = 128
+        Hold = 128,
+        ManiaLong = 256
+
     }
 
     

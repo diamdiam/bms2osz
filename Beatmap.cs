@@ -193,9 +193,14 @@ namespace bms
         internal static string GetSampleFilename(string orgDir, string name, out string ext)
         {
             string oldName = name.Substring(0, name.LastIndexOf('.'));
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 3; i++)
             {
-                ext = i == 0 ? ".wav" : ".ogg";
+                if(i==0)
+                    ext = ".wav";
+                else if(i==1)
+                    ext = ".ogg";
+                else
+                    ext = ".mp3";
                 if (File.Exists(orgDir + oldName + ext))
                     return oldName + ext;
             }
@@ -219,8 +224,7 @@ namespace bms
             //event sample
             foreach (Event e in EventList)
             {
-                string ext = "";
-                string file = GetSampleFilename(OrgDir, e.Filename, out ext);
+                string file = e.Filename;
                 if (file == "")
                     continue;
                 if (File.Exists(Dir + file))
@@ -240,7 +244,7 @@ namespace bms
                     writer.WriteLine("osu file format v11");
                     writer.WriteLine();
                     writer.WriteLine("[General]");
-                    writer.WriteLine("AudioFilename: blank.mp3");
+                    writer.WriteLine("AudioFilename: virtual");
                     writer.WriteLine("AudioLeadIn: 0");
                     writer.WriteLine("PreviewTime: 0");
                     writer.WriteLine("Countdown: 0");

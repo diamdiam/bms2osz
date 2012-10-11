@@ -29,6 +29,10 @@ namespace bms
         internal SoundType Sound;
         internal SampleSet Set;
         internal string File;
+        public override string ToString()
+        {
+            return string.Format("{0}-hit{1}{2}", Set.ToString(), Sound.ToString(), Custom.ToString());
+        }
     }
 
     static class SampleManager
