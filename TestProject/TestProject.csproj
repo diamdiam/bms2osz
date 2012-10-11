@@ -53,10 +53,6 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1Test.cs" />
-    <Compile Include="SampleManagerTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Shadow Include="测试引用\bms.accessor" />
   </ItemGroup>
   <ItemGroup>

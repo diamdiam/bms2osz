@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using bms.Properties;
 
 namespace bms
 {
@@ -30,6 +31,7 @@ namespace bms
         Note[] pendingNote;
         int longType = 1;
         string longObj = string.Empty;
+        double lastMapTime = double.MinValue;
         Dictionary<string, string> wavDict;
 
         private void processBMS(string[] files)
@@ -119,6 +121,12 @@ namespace bms
                                         case "PLAYLEVEL":
                                             map.Diff = "Lv." + arr[1];
                                             break;
+                                        case "RANK":
+                                            //rank = 0~3  / insane~easy
+                                            int rank = int.Parse(arr[1]);
+                                            map.HPRate = 9 - rank * 2;
+                                            map.HPRate = Math.Max(3, Math.Min(9, map.HPRate));// 3~9
+                                            break;
                                         case "LNTYPE":
                                             longType = int.Parse(arr[1]);
                                             break;
@@ -136,7 +144,17 @@ namespace bms
                         if (pendingNote[j] != null)
                             throw new Exception("Something wrong with the bms");
                     }
+                    if (tb_artist.Text.Trim() != "")
+                        map.Artist = tb_artist.Text;
+                    if (tb_title.Text.Trim() != "")
+                        map.Title = tb_title.Text;
+                    if (tb_version.Text.Trim() != "")
+                        map.Diff = tb_version.Text;
+                    if (tb_source.Text.Trim() != "")
+                        map.Source = tb_source.Text;
                     map.Save(files[i]);
+                    if (map.LastNoteTime > lastMapTime)
+                        lastMapTime = map.LastNoteTime;
                     tbResult.Text += string.Format("[Done] title:{0} notes:{1}\r\n", map.Title,map.NoteList.Count);
                 }
                 catch (Exception ex)
@@ -151,7 +169,7 @@ namespace bms
             wavDict = new Dictionary<string, string>();
             SampleManager.Clear();
             string path = ofdLoad.FileName;
-            string dir = path.Substring(0, path.LastIndexOf('\\'));
+            string dir = path.Substring(0, path.LastIndexOf('\\')+1);
             string[] files;
             if (!cb_all.Checked)
             {
@@ -166,12 +184,48 @@ namespace bms
                 bms.CopyTo(files, 0);
                 bme.CopyTo(files, bms.Length);
             }
-            DirectoryInfo di = new DirectoryInfo(dir + "\\osu_output\\");
+            DirectoryInfo di = new DirectoryInfo(dir + "osu_output\\");
             if (di.Exists)
                 di.Delete(true);
             di.Create();
             processBMS(files);
-        }
+            //note sample
+            foreach (SoundUnit su in SampleManager.fileDict.Values)
+            {
+                string ext = "";
+                string file = Beatmap.GetSampleFilename(dir,su.File, out ext);
+                if (file == "")
+                    continue;
+                string newFile = string.Format("{0}{1}-hit{2}{3}{4}", dir+"osu_output\\", su.Set.ToString().ToLower(),
+                                                            su.Sound.ToString().ToLower(), su.Custom.ToString(), ext);
+                if (File.Exists(newFile))
+                    continue;
+                File.Copy(dir + file, newFile);
+            }
+            //blank mp3
+            int minuts = (int)Math.Ceiling(lastMapTime / 1000 / 60);
+            if (minuts < 2)
+                minuts = 2;
+            if (minuts > 4)
+                tbResult.Text += "[Warning] Missing blank.mp3 in output.\r\n";
+            else
+            {
+                byte[] data;
+                if(minuts == 2)
+                    data = Resources.blank2;
+                else if(minuts == 3)
+                    data = Resources.blank3;
+                else
+                    data= Resources.blank4;
+                using (FileStream fs = new FileStream(dir + "osu_output\\blank.mp3", FileMode.OpenOrCreate))
+                {
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        fs.Write(data, 0, data.Length);
+                    }
+                }
+            }
+        }   
 
         private int[] line2key(string line)
         {

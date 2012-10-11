@@ -17,6 +17,7 @@ namespace bms
         internal string Artist = string.Empty;
         internal string Background = string.Empty;
         internal string Diff = string.Empty;
+        internal string Source = string.Empty;
         internal List<Event> EventList;
         internal List<Note> NoteList;
         internal List<Timing> TimingList;
@@ -25,6 +26,9 @@ namespace bms
         internal string OrgDir;
         internal string OrgFilename;
         internal string Filename;
+        internal int HPRate = 7;
+        internal double FirstNoteTime= double.MaxValue;
+        internal double LastNoteTime =double.MinValue;
 
         internal Beatmap()
         {
@@ -40,8 +44,8 @@ namespace bms
             OrgFilename = name.Substring(index + 1, name.LastIndexOf('.') - index - 1);
             Dir = name.Substring(0, index) + "\\osu_output\\";
             OrgDir = name.Substring(0, index + 1); // with \\
-            Artist = Artist.Replace('\\',' ');
-            Title = Title.Replace('\\',' ');
+            Artist = Artist.Replace('\\', ' ');
+            Title = Title.Replace('\\', ' ');
             Artist = Artist.Replace('/', ' ');
             Title = Title.Replace('/', ' ');
             Filename = string.Format("{0} - {1} ({2}) [{3}].osu", Artist, Title, "BMXC_V1", Diff);
@@ -171,20 +175,26 @@ namespace bms
                 n.TimeStart = getNoteTime(n);
                 if (n.Type == NoteType.ManiaLong)
                     n.TimeEnd = getNoteTime(n, false);
+                else
+                    n.TimeEnd = n.TimeStart;
                 //no notes in special column
                 if (!Special)
                     n.Column--;
+                if (n.TimeStart < FirstNoteTime)
+                    FirstNoteTime = n.TimeStart;
+                if (n.TimeEnd > LastNoteTime)
+                    LastNoteTime = n.TimeEnd;
             }
         }
 
         //bms support wav,ogg
-        private string getSampleFilename(string name, out string ext)
+        internal static string GetSampleFilename(string orgDir, string name, out string ext)
         {
             string oldName = name.Substring(0, name.LastIndexOf('.'));
             for (int i = 0; i < 2; i++)
             {
                 ext = i == 0 ? ".wav" : ".ogg";
-                if (File.Exists(OrgDir + oldName + ext))
+                if (File.Exists(orgDir + oldName + ext))
                     return oldName + ext;
             }
             ext = "";
@@ -200,7 +210,7 @@ namespace bms
                 string name = Background.Substring(0, Background.LastIndexOf('.'));
                 if (File.Exists(Dir + name + ".jpg"))
                     File.Delete(Dir + name + ".jpg");
-                img.Save(Dir + name+".jpg", ImageFormat.Jpeg);
+                img.Save(Dir + name + ".jpg", ImageFormat.Jpeg);
                 img.Dispose();
                 Background = name + ".jpg";//rename
             }
@@ -208,26 +218,14 @@ namespace bms
             foreach (Event e in EventList)
             {
                 string ext = "";
-                string file = getSampleFilename(e.Filename, out ext);
+                string file = GetSampleFilename(OrgDir, e.Filename, out ext);
                 if (file == "")
                     continue;
                 if (File.Exists(Dir + file))
                     continue;
                 File.Copy(OrgDir + file, Dir + file);
             }
-            //note sample
-            foreach (SoundUnit su in SampleManager.sampleDict.Values)
-            {
-                string ext = "";
-                string file = getSampleFilename(su.File, out ext);
-                if (file == "")
-                    continue;
-                string newFile = string.Format("{0}{1}-hit{2}{3}{4}", Dir, su.Set.ToString().ToLower(),
-                                                            su.Sound.ToString().ToLower(), su.Custom.ToString(), ext);
-                if (File.Exists(newFile))
-                    continue;
-                File.Copy(OrgDir + file, newFile);
-            }
+            
         }
 
         private void writeToFile()
@@ -247,6 +245,7 @@ namespace bms
                     writer.WriteLine("SampleSet: 0");
                     writer.WriteLine("StackLeniency: 0.4");
                     writer.WriteLine("Mode: 3");
+                    writer.WriteLine("SpecialColumn:" + (Special ? "1" : "0"));//new value, for 7+1 and 5+1 only.
                     writer.WriteLine();
 
                     writer.WriteLine("[Metadata]");
@@ -256,14 +255,14 @@ namespace bms
                     writer.WriteLine("ArtistUnicode:" + Artist);
                     writer.WriteLine("Creator: BMXC_V1");
                     writer.WriteLine("Version:" + Diff);
-                    writer.WriteLine("Source:");
+                    writer.WriteLine("Source:" + Source);
                     writer.WriteLine("Tags:");
                     writer.WriteLine("BeatmapID:0");
                     writer.WriteLine("BeatmapSetID:-1");
                     writer.WriteLine();
 
                     writer.WriteLine("[Difficulty]");
-                    writer.WriteLine("HPDrainRate: 7");
+                    writer.WriteLine("HPDrainRate: "+HPRate.ToString());
                     writer.WriteLine("CircleSize: " + Column.ToString());
                     writer.WriteLine("OverallDifficulty: 7");
                     writer.WriteLine("ApproachRate: 7");
@@ -285,13 +284,13 @@ namespace bms
                             writer.WriteLine("{0},{1},{2},\"{3}\",{4}", 5, (int)e.Time, 0, e.Filename, 70);
                         writer.WriteLine();
                     }
-                    
+
                     writer.WriteLine("[TimingPoints]");
                     double lastTime = -1;
                     foreach (Timing t in TimingList)
                     {
                         writer.WriteLine("{0:0},{1},{2},{3},{4},{5},{6},{7}", t.Time,
-                                    t.changed ? 60000 / t.bpm : -100, (int)(t.beat*4), (int)t.SampleSet,
+                                    t.changed ? 60000 / t.bpm : -100, (int)(t.beat * 4), (int)t.SampleSet,
                                      (int)t.CustomSampleSet, 70, (t.changed ? "1" : "0"), 0);
                     }
                     writer.WriteLine();
@@ -299,10 +298,11 @@ namespace bms
                     foreach (Note n in NoteList)
                     {
                         string extra = "";
-                        if (n.Type == NoteType.ManiaLong){
-                            extra = ","+(int)n.TimeEnd;
-                            if(n.Sound!=null)
-                                extra+=string.Format(":{0}:{1}:{2}", (int)n.Sound.Set, 0, (int)n.Sound.Custom);
+                        if (n.Type == NoteType.ManiaLong)
+                        {
+                            extra = "," + (int)n.TimeEnd;
+                            if (n.Sound != null)
+                                extra += string.Format(":{0}:{1}:{2}", (int)n.Sound.Set, 0, (int)n.Sound.Custom);
                         }
                         else
                             extra += n.Sound != null ? string.Format(",{0}:{1}:{2}", (int)n.Sound.Set, 0, (int)n.Sound.Custom) : "";
