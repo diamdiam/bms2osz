@@ -82,16 +82,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Resources\sample.ogg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\blank2.mp3" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\blank3.mp3" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\blank4.mp3" />
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -78,7 +78,7 @@ namespace bms
                                 if (spaceInx > 0)
                                 {
                                     string[] arr = new string[2];
-                                    arr[0] = line.Substring(0, spaceInx).Trim();
+                                    arr[0] = line.Substring(0, spaceInx).Trim().ToUpper();
                                     arr[1] = line.Substring(spaceInx).Trim();
                                     if (arr[0].StartsWith("BPM") && arr[0].Length == 5)
                                     {

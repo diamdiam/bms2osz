@@ -44,10 +44,10 @@ namespace bms
             OrgFilename = name.Substring(index + 1, name.LastIndexOf('.') - index - 1);
             Dir = name.Substring(0, index) + "\\osu_output\\";
             OrgDir = name.Substring(0, index + 1); // with \\
-            Artist = Artist.Replace('\\', ' ');
-            Title = Title.Replace('\\', ' ');
-            Artist = Artist.Replace('/', ' ');
-            Title = Title.Replace('/', ' ');
+            Regex reg = new Regex(@"[\\/\:\*\?\<\>\|\\""]");
+            Artist = reg.Replace(Artist, "");
+            Title = reg.Replace(Title, "");
+            Diff = reg.Replace(Diff, "");
             Filename = string.Format("{0} - {1} ({2}) [{3}].osu", Artist, Title, "BMXC_V1", Diff);
             if(File.Exists(Dir+Filename))
                 Filename = "("+OrgFilename+")"+Filename;
