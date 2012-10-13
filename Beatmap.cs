@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Text;
 using System.IO;
 using System.Drawing;
@@ -29,6 +29,7 @@ namespace bms
         internal int HPRate = 7;
         internal double FirstNoteTime= double.MaxValue;
         internal double LastNoteTime =double.MinValue;
+        private bool WithSample;
 
         internal Beatmap()
         {
@@ -38,11 +39,12 @@ namespace bms
             BpmDict = new Dictionary<string, double>();
         }
 
-        internal bool Save(string name)
+        internal bool Save(string name, string output, bool withSample =true)
         {
+            WithSample = withSample;
             int index = name.LastIndexOf('\\');
             OrgFilename = name.Substring(index + 1, name.LastIndexOf('.') - index - 1);
-            Dir = name.Substring(0, index) + "\\osu_output\\";
+            Dir = output;
             OrgDir = name.Substring(0, index + 1); // with \\
             Regex reg = new Regex(@"[\\/\:\*\?\<\>\|\\""]");
             Artist = reg.Replace(Artist, "");
@@ -58,7 +60,8 @@ namespace bms
             }
             doSort();
             calculateTime();
-            calculateEvent();
+            if(withSample)
+                calculateEvent();
             calculateNote();
             writeToFile();
             return true;
@@ -222,6 +225,8 @@ namespace bms
                 Background = name + ".jpg";//rename
             }
             //event sample
+            if (!WithSample)
+                return;
             foreach (Event e in EventList)
             {
                 string file = e.Filename;
@@ -282,7 +287,7 @@ namespace bms
                         writer.WriteLine("//Background and Video events");
                         writer.WriteLine("{0},{1},\"{2}\"", 0, 0, Background);
                     }
-                    if (EventList.Count > 0)
+                    if (EventList.Count > 0 && WithSample)
                     {
                         writer.WriteLine("//Storyboard Sound Samples");
 
@@ -300,19 +305,23 @@ namespace bms
                                      (int)t.CustomSampleSet, 70, (t.changed ? "1" : "0"), 0);
                     }
                     writer.WriteLine();
+
+                    SoundUnit empty = new SoundUnit();
                     writer.WriteLine("[HitObjects]");
                     foreach (Note n in NoteList)
                     {
                         string extra = "";
+                        SoundUnit su = n.Sound;
+                        if (su == null || !WithSample)
+                            su = empty;
                         if (n.Type == NoteType.ManiaLong)
                         {
                             extra = "," + (int)n.TimeEnd;
-                            if (n.Sound != null)
-                                extra += string.Format(":{0}:{1}:{2}", (int)n.Sound.Set, 0, (int)n.Sound.Custom);
+                            extra += string.Format(":{0}:{1}:{2}", (int)su.Set, 0, (int)su.Custom);
                         }
                         else
-                            extra += n.Sound != null ? string.Format(",{0}:{1}:{2}", (int)n.Sound.Set, 0, (int)n.Sound.Custom) : "";
-                        writer.WriteLine((int)((n.Column + 0.5) * 512 / Column) + ",192," + (int)n.TimeStart + "," + (int)n.Type + "," + (int)(n.Sound == null ? 0 : n.Sound.Sound) + extra);
+                            extra += string.Format(",{0}:{1}:{2}", (int)su.Set, 0, (int)su.Custom);
+                        writer.WriteLine((int)((n.Column + 0.5) * 512 / Column) + ",192," + (int)n.TimeStart + "," + (int)n.Type + "," + (int)su.Sound + extra);
                     }
                 }
             }

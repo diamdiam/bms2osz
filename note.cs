@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Text;
 
 namespace bms
@@ -16,7 +16,7 @@ namespace bms
         Spinner = 8,
         ColourHax = 112,
         Hold = 128,
-        ManiaLong = 256
+        ManiaLong = 128
 
     }
 

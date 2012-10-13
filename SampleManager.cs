@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Text;
 
 namespace bms
@@ -25,9 +25,9 @@ namespace bms
 
     internal class SoundUnit
     {
-        internal int Custom;
-        internal SoundType Sound;
-        internal SampleSet Set;
+        internal int Custom = 0;
+        internal SoundType Sound = SoundType.None;
+        internal SampleSet Set = SampleSet.None;
         internal string File;
         public override string ToString()
         {
