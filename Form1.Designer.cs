@@ -259,8 +259,11 @@
             this.Controls.Add(this.tbResult);
             this.Controls.Add(this.tbLoad);
             this.Controls.Add(this.btLoad);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "Form1";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "BMS converter";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

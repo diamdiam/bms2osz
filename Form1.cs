@@ -42,7 +42,19 @@ namespace bms
         {
             if (fbdOutput.ShowDialog() == DialogResult.OK)
             {
-                tbOutput.Text = fbdOutput.SelectedPath+"\\";
+                if (!fbdOutput.SelectedPath.EndsWith("\\"))
+                    tbOutput.Text = fbdOutput.SelectedPath + "\\";
+                else
+                    tbOutput.Text = fbdOutput.SelectedPath;
+                if (ofdLoad.FileName != "")
+                {
+                    int right = ofdLoad.FileName.LastIndexOf('\\');
+                    int left = ofdLoad.FileName.LastIndexOf('\\', right - 1) + 1;
+                    string outDir = ofdLoad.FileName.Substring(left, right - left);
+                    useDir = tbOutput.Text + outDir + "\\";
+                }else
+                    useDir = tbOutput.Text;
+                
             }
         }
 
@@ -60,6 +72,8 @@ namespace bms
         {
             string dir = ofdLoad.FileName.Substring(0, ofdLoad.FileName.LastIndexOf('\\') + 1);
             string ext;
+            successFile = 0;
+            failedFile = 0;
             for (int i = 0; i < files.Length; i++)
             {
                 map = new Beatmap();
