@@ -224,6 +224,10 @@ namespace bms
                 img.Dispose();
                 Background = name + ".jpg";//rename
             }
+            else
+            {
+                Background = "";
+            }
             //event sample
             if (!WithSample)
                 return;
@@ -256,7 +260,7 @@ namespace bms
                     writer.WriteLine("SampleSet: 0");
                     writer.WriteLine("StackLeniency: 0.4");
                     writer.WriteLine("Mode: 3");
-                    writer.WriteLine("SpecialColumn:" + (Special ? "1" : "0"));//new value, for 7+1 and 5+1 only.
+                    writer.WriteLine("SpecialStyle:" + (Special ? "1" : "0"));//new value, for 7+1 and 5+1 only.
                     writer.WriteLine();
 
                     writer.WriteLine("[Metadata]");
